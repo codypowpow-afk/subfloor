@@ -10,7 +10,7 @@ A small mono sub-bass and bass synth for Windows.
 
 ## Run it
 
-Download `Subfloor.exe` from the [Releases](../../releases) page and double-click it. It opens in its own window and works fully offline: the fonts are built in, there is no local web server, and it makes no network connections. It draws its window with the WebView2 component that Windows 10 and 11 already include.
+Download [`bin/Subfloor.exe`](bin/Subfloor.exe) (or the copy on the [Releases](../../releases) page) and double-click it. It opens in its own window and works fully offline: the fonts are built in, there is no local web server, and it makes no network connections. It draws its window with the WebView2 component that Windows 10 and 11 already include.
 
 Windows SmartScreen may warn you the first time because the exe isn't code-signed. Choose **More info → Run anyway**.
 
