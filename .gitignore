@@ -1,0 +1,6 @@
+.venv/
+build/
+dist/
+app/web/
+*.spec
+__pycache__/
