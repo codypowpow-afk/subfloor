@@ -10,7 +10,7 @@ A small mono sub-bass and bass synth for Windows.
 
 ## Run it
 
-Download `Subfloor.exe` from the [Releases](../../releases) page and double-click it. It needs the Microsoft Edge WebView2 runtime, which Windows 10 and 11 already include.
+Download `Subfloor.exe` from the [Releases](../../releases) page and double-click it. It opens in its own window and works fully offline: the fonts are built in, there is no local web server, and it makes no network connections. It draws its window with the WebView2 component that Windows 10 and 11 already include.
 
 Windows SmartScreen may warn you the first time because the exe isn't code-signed. Choose **More info → Run anyway**.
 
@@ -38,6 +38,10 @@ That creates `.venv`, installs the pinned packages, wraps `subfloor.html` into `
 
 - `subfloor.html` is the whole synth (Web Audio, no libraries). Edit this file to change the sound or the UI.
 - `app/main.py` opens it in a native window using [pywebview](https://pywebview.flowrl.com/).
-- `tools/build_page.py` turns the page into a full HTML document; `tools/make_icon.py` draws the icon.
+- `tools/build_page.py` turns the page into a self-contained HTML document, swapping the Google Fonts links for the fonts in `app/fonts`; `tools/make_icon.py` draws the icon.
 
-Settings are saved to `%APPDATA%\Subfloor`.
+Settings are saved to `%APPDATA%\Subfloor\settings.json`.
+
+## Fonts
+
+`app/fonts` contains Bricolage Grotesque, IBM Plex Sans and IBM Plex Mono, all under the SIL Open Font License 1.1 (license files alongside).

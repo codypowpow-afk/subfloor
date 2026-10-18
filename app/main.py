@@ -1,11 +1,15 @@
-"""Subfloor desktop app: opens the synth page in a native WebView2 window."""
+"""Subfloor desktop app: shows the synth in its own native window, fully offline.
+
+The page is loaded straight from memory (no local web server), and settings are
+saved to %APPDATA%\\Subfloor\\settings.json through the js_api bridge.
+"""
 import os
-import socket
 import sys
 
 import webview
 
-PREFERRED_PORT = 48231  # fixed port keeps the page origin stable, so saved settings survive restarts
+DATA_DIR = os.path.join(os.environ.get("APPDATA", os.path.expanduser("~")), "Subfloor")
+SETTINGS = os.path.join(DATA_DIR, "settings.json")
 
 
 def resource(*parts):
@@ -13,33 +17,40 @@ def resource(*parts):
     return os.path.join(base, *parts)
 
 
-def free_port(port):
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+class Api:
+    def load(self):
         try:
-            s.bind(("127.0.0.1", port))
-            return port
+            with open(SETTINGS, encoding="utf-8") as f:
+                return f.read()
         except OSError:
             return None
 
+    def save(self, text):
+        os.makedirs(DATA_DIR, exist_ok=True)
+        tmp = SETTINGS + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
+            f.write(text)
+        os.replace(tmp, SETTINGS)
+
 
 def main():
-    storage = os.path.join(os.environ.get("APPDATA", os.path.expanduser("~")), "Subfloor")
-    os.makedirs(storage, exist_ok=True)
+    os.makedirs(DATA_DIR, exist_ok=True)
+    with open(resource("web", "index.html"), encoding="utf-8") as f:
+        html = f.read()
 
     webview.create_window(
         "Subfloor",
-        resource("web", "index.html"),
+        html=html,
+        js_api=Api(),
         width=1140,
-        height=940,
+        height=1000,
         min_size=(420, 600),
         background_color="#14161D",
     )
     webview.start(
         gui="edgechromium",
-        http_server=True,
-        http_port=free_port(PREFERRED_PORT),
         private_mode=False,
-        storage_path=storage,
+        storage_path=os.path.join(DATA_DIR, "webview"),
         icon=resource("icon.ico"),
     )
 

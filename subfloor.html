@@ -299,11 +299,24 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   // ---------- state ----------
   const state = { shape: 'sine', oct: 1, hold: false, arp: false, arpMode: 'up', arpDiv: '1/16', arpOct: 1 };
   for (const k in PARAMS) state[k] = PARAMS[k].def;
-  try {
-    const saved = JSON.parse(localStorage.getItem('subfloor') || 'null');
-    if (saved) for (const k in saved) if (k in state && k !== 'hold' && k !== 'arp') state[k] = saved[k];
-  } catch (e) {}
-  const save = () => { try { localStorage.setItem('subfloor', JSON.stringify(state)); } catch (e) {} };
+  // Settings go to the desktop app's settings file when running inside it, otherwise to localStorage.
+  const desktopApi = () => window.pywebview && window.pywebview.api && window.pywebview.api.save ? window.pywebview.api : null;
+  function restore(json) {
+    try {
+      const saved = JSON.parse(json || 'null');
+      if (saved) for (const k in saved) if (k in state && k !== 'hold' && k !== 'arp') state[k] = saved[k];
+    } catch (e) {}
+  }
+  try { restore(localStorage.getItem('subfloor')); } catch (e) {}
+  let saveTimer = 0;
+  const save = () => {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      const json = JSON.stringify(state), api = desktopApi();
+      if (api) api.save(json).catch(() => {});
+      else try { localStorage.setItem('subfloor', json); } catch (e) {}
+    }, 300);
+  };
 
   // ---------- build controls ----------
   const sliders = {};
@@ -737,5 +750,15 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   // ---------- init ----------
   function syncAll() { for (const id in PARAMS) syncSlider(id); syncShape(); syncSegs(); syncArpBtn(); }
   syncAll(); buildKeys(); requestAnimationFrame(draw);
+
+  function loadDesktopSettings() {
+    const api = desktopApi(); if (!api) return;
+    api.load().then(json => {
+      if (!json) return;
+      restore(json); syncAll(); buildKeys(); applyAll();
+    }).catch(() => {});
+  }
+  if (desktopApi()) loadDesktopSettings();
+  else window.addEventListener('pywebviewready', loadDesktopSettings);
 })();
 </script>
